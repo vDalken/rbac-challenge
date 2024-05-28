@@ -1,6 +1,14 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+} from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Base } from './base.entity';
+import { Role } from './role.entity';
 
 @Entity()
 export class User extends Base {
@@ -12,6 +20,10 @@ export class User extends Base {
 
   @Column()
   password: string;
+
+  @ManyToMany(() => Role)
+  @JoinTable()
+  roles: Array<Role>;
 
   @BeforeInsert()
   @BeforeUpdate()
