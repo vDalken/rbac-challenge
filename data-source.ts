@@ -1,3 +1,4 @@
+import { User } from './src/entities/user.entity';
 import { DataSource } from 'typeorm';
 
 export const DatabaseSource = new DataSource({
@@ -8,7 +9,7 @@ export const DatabaseSource = new DataSource({
   username: 'postgres',
   password: '12345',
   migrations: ['migrations/**'],
-  entities: [],
+  entities: [User],
   synchronize: false,
   migrationsTableName: 'migrations_table',
 });
