@@ -1,9 +1,11 @@
-import { Permission } from './src/entities/permission';
+import { SeederOptions } from 'typeorm-extension';
+import { Permission } from './src/entities/permission.entity';
 import { Role } from './src/entities/role.entity';
 import { User } from './src/entities/user.entity';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { MainSeeder } from './src/seeds/main.seeder';
 
-export const DatabaseSource = new DataSource({
+const options: DataSourceOptions & SeederOptions = {
   type: 'postgres',
   host: 'localhost',
   port: 5432,
@@ -14,4 +16,7 @@ export const DatabaseSource = new DataSource({
   entities: [User, Role, Permission],
   synchronize: false,
   migrationsTableName: 'migrations_table',
-});
+  seeds: [MainSeeder],
+};
+
+export const DatabaseSource = new DataSource(options);
