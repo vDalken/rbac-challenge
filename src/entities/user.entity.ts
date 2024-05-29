@@ -6,7 +6,7 @@ import {
   JoinTable,
   ManyToMany,
 } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 import { Base } from './base.entity';
 import { Role } from './role.entity';
 
@@ -29,7 +29,7 @@ export class User extends Base {
   @BeforeUpdate()
   async hashPassword() {
     if (this.password) {
-      this.password = await bcrypt.hash(this.password, 10);
+      this.password = await argon2.hash(this.password);
     }
   }
 }
