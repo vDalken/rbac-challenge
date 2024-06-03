@@ -1,10 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { AuthPayloadDto } from './dto/auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
+import { SignUpDto } from './dto/sign-up.dto';
 
 @Injectable()
 export class AuthService {
@@ -15,15 +20,43 @@ export class AuthService {
 
   async validateUser({ username, password }: AuthPayloadDto) {
     const user = await this.usersRepository.findOneBy({ username }); //shorthand for {username: username}
-    console.log(user);
     if (!user) return null;
 
     const isPasswordValid = await argon2.verify(user.password, password);
 
     if (isPasswordValid) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...toBeSentUser } = user;
-      return this.jwtService.sign(toBeSentUser);
+      const { password, ...toBeSentInfo } = user;
+      return this.jwtService.sign(toBeSentInfo);
     }
+  }
+
+  async signup(signUpDto: SignUpDto) {
+    const user = new User(
+      signUpDto.username,
+      signUpDto.email,
+      signUpDto.password,
+    );
+
+    let savedUser;
+
+    try {
+      savedUser = await this.usersRepository.save(user);
+    } catch (error) {
+      // Unique constraint violation error code
+      if (error.code === '23505') {
+        if (error.detail.includes('username')) {
+          throw new ConflictException('Username is already taken');
+        } else if (error.detail.includes('email')) {
+          throw new ConflictException('Email is already taken');
+        }
+      }
+      throw new InternalServerErrorException('Failed to register user');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...toBeSentInfo } = savedUser;
+
+    return this.jwtService.sign(toBeSentInfo);
   }
 }
