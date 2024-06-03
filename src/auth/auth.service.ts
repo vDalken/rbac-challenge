@@ -10,16 +10,21 @@ import { User } from '../entities/user.entity';
 import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/sign-up.dto';
+import { Role } from 'src/entities/role.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
+    @InjectRepository(Role) private rolesRepository: Repository<Role>,
     private jwtService: JwtService,
   ) {}
 
   async validateUser({ username, password }: AuthPayloadDto) {
-    const user = await this.usersRepository.findOneBy({ username }); //shorthand for {username: username}
+    const user = await this.usersRepository.findOne({
+      where: { username }, //shorthand for {username: username}
+      relations: ['roles'], // Include roles in the query
+    });
     if (!user) return null;
 
     const isPasswordValid = await argon2.verify(user.password, password);
@@ -37,6 +42,9 @@ export class AuthService {
       signUpDto.email,
       signUpDto.password,
     );
+
+    const defaultRole = await this.rolesRepository.findOneBy({ name: 'User' });
+    user.roles = [defaultRole];
 
     let savedUser;
 

@@ -4,6 +4,7 @@ import { LocalGuard } from './guards/local.guard';
 import { Request } from 'express';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { SignUpDto } from './dto/sign-up.dto';
+import { Roles } from './decorators/roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -24,5 +25,12 @@ export class AuthController {
   @Post('signup')
   async register(@Body() signUpDto: SignUpDto) {
     return this.authService.signup(signUpDto);
+  }
+
+  @Post('protected')
+  @Roles('Admin')
+  @UseGuards(JwtAuthGuard)
+  async protectedRoute() {
+    return 'This route is protected and only accessible by Admins';
   }
 }
