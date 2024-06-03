@@ -43,20 +43,30 @@ export class AuthService {
     try {
       savedUser = await this.usersRepository.save(user);
     } catch (error) {
-      // Unique constraint violation error code
-      if (error.code === '23505') {
-        if (error.detail.includes('username')) {
-          throw new ConflictException('Username is already taken');
-        } else if (error.detail.includes('email')) {
-          throw new ConflictException('Email is already taken');
-        }
-      }
-      throw new InternalServerErrorException('Failed to register user');
+      this.handleDatabaseError(error);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...toBeSentInfo } = savedUser;
 
     return this.jwtService.sign(toBeSentInfo);
+  }
+
+  private handleDatabaseError(error: any): void {
+    if (error.code === '23505') {
+      // Unique constraint violation error code
+      const errorMessage = this.getUniqueConstraintErrorMessage(error.detail);
+      throw new ConflictException(errorMessage);
+    }
+
+    throw new InternalServerErrorException('Failed to register user');
+  }
+
+  private getUniqueConstraintErrorMessage(detail: string): string {
+    if (detail.includes('username')) return 'Username is already taken';
+
+    if (detail.includes('email')) return 'Email is already taken';
+
+    return 'Unique constraint violation';
   }
 }
