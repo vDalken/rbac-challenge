@@ -7,9 +7,9 @@ import { MainSeeder } from './src/seeds/main.seeder';
 
 const options: DataSourceOptions & SeederOptions = {
   type: 'postgres',
-  host: 'localhost',
+  host: 'database',
   port: 5432,
-  database: 'rbac_challenge_db',
+  database: 'database',
   username: 'postgres',
   password: '12345',
   migrations: ['migrations/**'],
